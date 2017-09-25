@@ -4,20 +4,22 @@
  *  Created on: Sep 21, 2017
  *      Author: root
  */
+#include "stdlib.h"
 #include "Utils/ApplicationManager.h"
 
 int main (int argc, char* argv[])
 {
 	ApplicationManager manager;
 
-	if (manager.initialize () == false)
+	if (!manager.initialize ())
 	{
-		exit (-1);
+		exit (1);
 	}
 
 	manager.pending ();
 
-	exit(0);
+	exit (0);
+	return 0;
 }
 
 

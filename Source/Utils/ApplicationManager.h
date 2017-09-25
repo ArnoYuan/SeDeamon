@@ -9,6 +9,7 @@
 #define _UTILS_APPLICATIONMANAGER_H_
 
 #include <vector>
+#include <Console/Console.h>
 #include "ApplicationProperties.h"
 
 class ApplicationManager {
@@ -18,20 +19,32 @@ public:
 private:
     std::vector<ApplicationProperties> applications;
     bool running;
+    NS_NaviCommon::Console console;
 private:
+
+    bool isRunning ()
+    {
+    	return running;
+    }
+
+    void terminate ()
+    {
+    	running = false;
+    }
+
     bool addApplication (ApplicationProperties& application);
 
     bool runApplication (ApplicationProperties& application);
 
     bool runApplications ();
 
-    bool killApplicationByName (std::string app_name);
+    bool killApplication (std::string app_name);
 
-    bool killApplicationByPID (pid_t pid);
+    bool killApplication (pid_t pid);
 
     bool killApplications ();
 
-    void onApplicationQuit (pid_t pid, int status);
+    void removeApplication (pid_t pid);
 
     static void signalChild (int no);
     static void signalTerm (int no);
@@ -43,6 +56,8 @@ public:
     bool initialize ();
 
     void pending ();
+
+    void onApplicationQuit (pid_t pid, int status);
 
 };
 
