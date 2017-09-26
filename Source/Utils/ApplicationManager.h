@@ -22,16 +22,6 @@ private:
     NS_NaviCommon::Console console;
 private:
 
-    bool isRunning ()
-    {
-    	return running;
-    }
-
-    void terminate ()
-    {
-    	running = false;
-    }
-
     bool addApplication (ApplicationProperties& application);
 
     bool runApplication (ApplicationProperties& application);
@@ -46,11 +36,6 @@ private:
 
     void removeApplication (pid_t pid);
 
-    static void signalChild (int no);
-    static void signalTerm (int no);
-
-    void registerSignals ();
-
 public:
 
     bool initialize ();
@@ -58,6 +43,17 @@ public:
     void pending ();
 
     void onApplicationQuit (pid_t pid, int status);
+
+    bool isRunning ()
+	{
+		return running;
+	}
+
+	void terminate ()
+	{
+		console.debug ("Application is quitting!");
+		running = false;
+	}
 
 };
 

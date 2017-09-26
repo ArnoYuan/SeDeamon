@@ -12,10 +12,7 @@
 #include <Parameter/Parameter.h>
 #include "ApplicationManager.h"
 
-static ApplicationManager* instance;
-
 ApplicationManager::ApplicationManager() {
-	instance = this;
 	applications.clear ();
 }
 
@@ -89,17 +86,19 @@ bool ApplicationManager::killApplication (pid_t pid)
 {
 	if (pid != 0)
 	{
-		if (kill (pid, SIGTERM) != 0)
+		console.message ("Killing application with pid : %d...", pid);
+		if (kill (pid, SIGUSR1) != 0)
 		{
 			return false;
 		}else{
-			sleep (1);
+			//sleep (1);
 			int result = waitpid (pid, NULL, WNOHANG);
 			if (result == pid)
 			{
 				return true;
 			}else if (result == 0)
 			{
+				console.debug ("Application killing might be fail, kill it force.", pid);
 				kill (pid, SIGKILL);
 				return true;
 			}else
@@ -135,6 +134,7 @@ bool ApplicationManager::killApplications ()
 	bool result = true;
 	for (int i = 0; i < applications.size (); ++i)
 	{
+		console.message ("Kill!");
 		if (!killApplication (applications[i].getPID ()))
 		{
 			result = false;
@@ -143,37 +143,9 @@ bool ApplicationManager::killApplications ()
 	return result;
 }
 
-void ApplicationManager::signalChild (int no)
-{
-	int status;
-	pid_t pid;
-
-	while (((pid = waitpid(-1, &status, WNOHANG)) > 0) && instance->isRunning ())
-	{
-		sleep(1);
-		instance->onApplicationQuit(pid, status);
-	}
-}
-
-void ApplicationManager::signalTerm (int no)
-{
-	instance->terminate ();
-}
-
-void ApplicationManager::registerSignals ()
-{
-	signal (SIGINT, signalTerm);
-	signal (SIGKILL, signalTerm);
-	signal (SIGQUIT, signalTerm);
-	signal (SIGTERM, signalTerm);
-
-	signal (SIGCHLD, signalChild);
-	//signal (SIGUSR1, signalChild);
-}
-
 bool ApplicationManager::initialize ()
 {
-	registerSignals ();
+	NS_NaviCommon::Time::init ();
 
 	NS_NaviCommon::Parameter parameter;
 	parameter.loadConfigurationFile ("deamon.xml");
@@ -181,7 +153,11 @@ bool ApplicationManager::initialize ()
 	int app_count = parameter.getParameter ("app_count", 4);
 
 	std::string app_names[] = {"SeLidar", "SeController", "SeMapping", "SeNavigation"};
-	std::string app_cmds[] = {"SeLidar", "SeController", "SeMapping", "SeNavigation"};
+	std::string app_cmds[] = {
+			"/home/cybernik/Development/Projects/SeLidar/Debug/SeLidar",
+			"/home/cybernik/Development/Projects/SeController/Debug/SeController",
+			"/home/cybernik/Development/Projects/SeMapping/Debug/SeMapping",
+			"/home/cybernik/Development/Projects/SeNavigation/Debug/SeNavigation"};
 	for (int i = 0; i < app_count; i++)
 	{
 		ApplicationProperties app;
@@ -217,5 +193,8 @@ void ApplicationManager::pending ()
 	{
 		rate.sleep ();
 	}
+
+	console.message ("Kill all applications!");
+
 	killApplications ();
 }
