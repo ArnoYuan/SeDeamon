@@ -55,7 +55,7 @@ int main (int argc, char* argv[])
 		lock.l_len = 0;
 		if (fcntl(lck, F_SETLK, &lock) < 0)
 		{
-			printf ("There is an instance has been running!");
+			printf ("There is an instance has been running!\n");
 			exit(EXIT_FAILURE);
 			return 0;
 		}
@@ -78,7 +78,7 @@ int main (int argc, char* argv[])
 		exit (EXIT_SUCCESS);
 		return 0;
 	}else if (pid > 0){
-		printf ("Run SeDeamon process in background.");
+		printf ("Run SeDeamon process in background.\n");
 		exit (EXIT_SUCCESS);
 		return 0;
 	}else{

@@ -10,13 +10,15 @@
 
 #include <string>
 #include <signal.h>
+#include <Parameter/Parameter.h>
 
 class ApplicationProperties
 {
 public:
-  ApplicationProperties () :
-	  name_ (""), pid_ (0),
-	  run_script_ ("")
+  ApplicationProperties (std::string name) :
+	  name_ (name), pid_ (0),
+	  run_script_ (""), verbose_ (false),
+	  core_ (0), log_file_ ("")
   {
 
   }
@@ -28,10 +30,30 @@ private:
   std::string name_;
   pid_t pid_;
   std::string run_script_;
+  bool verbose_;
+  int core_;
+  std::string log_file_;
 public:
-  void setName (std::string name)
+  void load ()
   {
-	  name_ = name;
+	  if (name_ != "")
+	  {
+		  NS_NaviCommon::Parameter parameter;
+		  parameter.loadConfigurationFile (name_ + ".xml");
+
+		  run_script_ = parameter.getParameter ("script", "/usr/sbin/" + name_);
+
+		  if (parameter.getParameter ("verbose", 1) == 1)
+		  {
+			  verbose_ = true;
+		  }else{
+			  verbose_ = false;
+		  }
+
+		  core_ = parameter.getParameter ("core", -1);
+
+		  log_file_ = parameter.getParameter ("log_file", "");
+	  }
   }
 
   std::string getName ()
@@ -49,14 +71,24 @@ public:
 	  return pid_;
   }
 
-  void setRunScript (std::string run_script)
+  int getCore ()
   {
-	  run_script_ = run_script;
+	  return core_;
   }
 
   std::string getRunScript ()
   {
 	  return run_script_;
+  }
+
+  std::string getLogFileName ()
+  {
+	  return log_file_;
+  }
+
+  bool isVerboseMode ()
+  {
+	  return verbose_;
   }
 
 };

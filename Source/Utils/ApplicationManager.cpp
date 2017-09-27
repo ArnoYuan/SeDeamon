@@ -5,7 +5,10 @@
  *      Author: root
  */
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <signal.h>
+#include <string.h>
 #include <sys/wait.h>
 #include <Time/Time.h>
 #include <Time/Rate.h>
@@ -29,7 +32,7 @@ bool ApplicationManager::runApplication (ApplicationProperties& application)
 {
 	if (application.getPID () == 0)
 	{
-		console.debug ("Load application: [ %s ]", application.getName ().c_str ());
+		console.message ("Load application: [ %s ]", application.getName ().c_str ());
 
 		pid_t pid = fork ();
 
@@ -37,7 +40,43 @@ bool ApplicationManager::runApplication (ApplicationProperties& application)
 		{
 			//child process
 			int result;
-			result = execlp (application.getRunScript ().c_str (), NULL, NULL, NULL);
+			std::string cmd = application.getName () + " ";
+
+			if (application.isVerboseMode ())
+			{
+				cmd += "-v ";
+			}
+
+			if (application.getCore () >= 0)
+			{
+				cmd += "-c ";
+				cmd += application.getCore ();
+				cmd += " ";
+			}
+
+			if (application.getLogFileName () != "")
+			{
+				cmd += "-l ";
+				cmd += application.getLogFileName ();
+				cmd += " ";
+			}
+
+			char cmd_string[512] = {0};
+			char *args[64];
+			char **next = args;
+
+			cmd.copy (cmd_string, cmd.size ());
+
+			char *temp = strtok (cmd_string, " \n");
+			while (temp != NULL)
+			{
+				*next++ = temp;
+				printf ("%s\n", temp);
+				temp = strtok (NULL, " \n");
+			}
+			*next = NULL;
+
+			result = execvp (application.getRunScript ().c_str (), args);
 			if (result < 0)
 			{
 				return false;
@@ -147,31 +186,13 @@ bool ApplicationManager::initialize ()
 {
 	NS_NaviCommon::Time::init ();
 
-	NS_NaviCommon::Parameter parameter;
-	parameter.loadConfigurationFile ("deamon.xml");
-
-	int app_count = parameter.getParameter ("app_count", 4);
-
 	std::string app_names[] = {"SeLidar", "SeController", "SeMapping", "SeNavigation"};
-	std::string app_cmds[] = {
-			"/home/cybernik/Development/Projects/SeLidar/Debug/SeLidar",
-			"/home/cybernik/Development/Projects/SeController/Debug/SeController",
-			"/home/cybernik/Development/Projects/SeMapping/Debug/SeMapping",
-			"/home/cybernik/Development/Projects/SeNavigation/Debug/SeNavigation"};
-	for (int i = 0; i < app_count; i++)
+
+	for (int i = 0; i < (sizeof (app_names) / sizeof (std::string)); i++)
 	{
-		ApplicationProperties app;
-		std::string prop_name;
+		ApplicationProperties app (app_names[i]);
 
-		prop_name = "name_" + i;
-		std::string app_name = parameter.getParameter (prop_name, app_names[i]);
-		app.setName (app_name);
-
-		prop_name = "cmd_" + i;
-		std::string app_cmd = parameter.getParameter (prop_name, app_cmds[i]);
-		app.setRunScript (app_cmd);
-
-		app.setPID (0);
+		app.load ();
 
 		addApplication (app);
 	}
