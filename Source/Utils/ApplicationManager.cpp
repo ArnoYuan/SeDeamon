@@ -40,26 +40,35 @@ bool ApplicationManager::runApplication (ApplicationProperties& application)
 		{
 			//child process
 			int result;
-			std::string cmd = application.getName () + " ";
+
+			std::stringstream cmdstr;
+
+			std::string cmd;
+
+			cmdstr << application.getName ();
+			cmdstr << " ";
 
 			if (application.isVerboseMode ())
 			{
-				cmd += "-v ";
+				cmdstr << "-v ";
 			}
 
 			if (application.getCore () >= 0)
 			{
-				cmd += "-c ";
-				cmd += application.getCore ();
-				cmd += " ";
+
+				cmdstr << "-c ";
+				cmdstr << application.getCore ();
+				cmdstr << " ";
 			}
 
 			if (application.getLogFileName () != "")
 			{
-				cmd += "-l ";
-				cmd += application.getLogFileName ();
-				cmd += " ";
+				cmdstr << "-l ";
+				cmdstr << application.getLogFileName ();
+				cmdstr << " ";
 			}
+
+			cmd = cmdstr.str ();
 
 			char cmd_string[512] = {0};
 			char *args[64];
@@ -67,11 +76,12 @@ bool ApplicationManager::runApplication (ApplicationProperties& application)
 
 			cmd.copy (cmd_string, cmd.size ());
 
+			console.debug ("Prepare to run command: [%s]", cmd_string);
+
 			char *temp = strtok (cmd_string, " \n");
 			while (temp != NULL)
 			{
 				*next++ = temp;
-				printf ("%s\n", temp);
 				temp = strtok (NULL, " \n");
 			}
 			*next = NULL;
@@ -79,6 +89,8 @@ bool ApplicationManager::runApplication (ApplicationProperties& application)
 			result = execvp (application.getRunScript ().c_str (), args);
 			if (result < 0)
 			{
+				console.error ("Run application [%s] failure!", application.getRunScript ().c_str ());
+				exit (EXIT_FAILURE);
 				return false;
 			}
 
@@ -166,6 +178,7 @@ void ApplicationManager::removeApplication (pid_t pid)
 void ApplicationManager::onApplicationQuit (pid_t pid, int status)
 {
 	removeApplication (pid);
+	running = false;
 }
 
 bool ApplicationManager::killApplications ()

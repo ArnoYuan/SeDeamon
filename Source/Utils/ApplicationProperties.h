@@ -50,7 +50,7 @@ public:
 			  verbose_ = false;
 		  }
 
-		  core_ = parameter.getParameter ("core", -1);
+		  core_ = parameter.getParameter ("core", 0);
 
 		  log_file_ = parameter.getParameter ("log_file", "");
 	  }

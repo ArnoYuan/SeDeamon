@@ -16,9 +16,8 @@ static void signalChild (int no)
 	int status;
 	pid_t pid;
 
-	while (((pid = waitpid(-1, &status, WNOHANG)) > 0) && manager->isRunning ())
+	while (((pid = waitpid(WAIT_ANY, &status, WNOHANG)) > 0) && manager->isRunning ())
 	{
-		sleep (1);
 		manager->onApplicationQuit (pid, status);
 	}
 }
@@ -74,6 +73,8 @@ int main (int argc, char* argv[])
 		manager->pending ();
 
 		delete manager;
+
+		printf ("Quit SeDeamon process.\n");
 
 		exit (EXIT_SUCCESS);
 		return 0;
