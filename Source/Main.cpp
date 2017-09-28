@@ -16,7 +16,7 @@ static void signalChild (int no)
 	int status;
 	pid_t pid;
 
-	while (((pid = waitpid(WAIT_ANY, &status, WNOHANG)) > 0) && manager->isRunning ())
+	while (((pid = waitpid(-1, &status, WNOHANG)) > 0) && manager->isRunning ())
 	{
 		manager->onApplicationQuit (pid, status);
 	}
