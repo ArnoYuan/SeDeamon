@@ -177,6 +177,7 @@ void ApplicationManager::removeApplication (pid_t pid)
 
 void ApplicationManager::onApplicationQuit (pid_t pid, int status)
 {
+	console.warning ("Application with PID: %d has been quit!", pid);
 	removeApplication (pid);
 	running = false;
 }
@@ -186,7 +187,6 @@ bool ApplicationManager::killApplications ()
 	bool result = true;
 	for (int i = 0; i < applications.size (); ++i)
 	{
-		console.message ("Kill!");
 		if (!killApplication (applications[i].getPID ()))
 		{
 			result = false;
