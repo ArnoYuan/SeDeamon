@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <sys/wait.h>
 #include "Utils/ApplicationManager.h"
+#include <boost/interprocess/shared_memory_object.hpp>
 
 ApplicationManager* manager;
 
@@ -38,6 +39,20 @@ void registerSignals ()
 	//signal (SIGUSR1, signalChild);
 }
 
+void cleanup ()
+{
+	//DATASETS
+	boost::interprocess::shared_memory_object::remove ("TWIST");
+	boost::interprocess::shared_memory_object::remove ("LASER_SCAN");
+	boost::interprocess::shared_memory_object::remove ("GOAL");
+
+	//SERVICES
+	boost::interprocess::shared_memory_object::remove ("BASE_ODOM");
+	boost::interprocess::shared_memory_object::remove ("BASE_ODOM_TF");
+	boost::interprocess::shared_memory_object::remove ("ODOM_MAP_TF");
+	boost::interprocess::shared_memory_object::remove ("MAP");
+}
+
 int main (int argc, char* argv[])
 {
 	pid_t pid = fork ();
@@ -59,6 +74,8 @@ int main (int argc, char* argv[])
 			return 0;
 		}
 
+		cleanup ();
+
 		manager = new ApplicationManager ();
 
 		registerSignals ();
@@ -75,6 +92,8 @@ int main (int argc, char* argv[])
 		delete manager;
 
 		printf ("Quit SeDeamon process.\n");
+
+		cleanup ();
 
 		exit (EXIT_SUCCESS);
 		return 0;
