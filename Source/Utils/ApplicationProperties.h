@@ -15,14 +15,13 @@
 class ApplicationProperties
 {
 public:
-  ApplicationProperties (std::string name) :
-	  name_ (name), pid_ (0),
-	  run_script_ (""), verbose_ (false),
-	  core_ (0), log_file_ ("")
+  ApplicationProperties(std::string name)
+      : name_(name), pid_(0), run_script_(""), verbose_(false), core_(0),
+        log_file_("")
   {
 
   }
-  ~ApplicationProperties ()
+  ~ApplicationProperties()
   {
 
   }
@@ -34,65 +33,65 @@ private:
   int core_;
   std::string log_file_;
 public:
-  void load ()
+  void load()
   {
-	  if (name_ != "")
-	  {
-		  NS_NaviCommon::Parameter parameter;
-		  parameter.loadConfigurationFile (name_ + ".xml");
+    if(name_ != "")
+    {
+      NS_NaviCommon::Parameter parameter;
+      parameter.loadConfigurationFile(name_ + ".xml");
 
-		  run_script_ = parameter.getParameter ("script", "/usr/sbin/" + name_);
+      run_script_ = parameter.getParameter("script", "/usr/sbin/" + name_);
 
-		  if (parameter.getParameter ("verbose", 1) == 1)
-		  {
-			  verbose_ = true;
-		  }else{
-			  verbose_ = false;
-		  }
+      if(parameter.getParameter("verbose", 1) == 1)
+      {
+        verbose_ = true;
+      }
+      else
+      {
+        verbose_ = false;
+      }
 
-		  core_ = parameter.getParameter ("core", 0);
+      core_ = parameter.getParameter("core", 0);
 
-		  log_file_ = parameter.getParameter ("log_file", "");
-	  }
+      log_file_ = parameter.getParameter("log_file", "");
+    }
   }
 
-  std::string getName ()
+  std::string getName()
   {
-	  return name_;
+    return name_;
   }
 
-  void setPID (pid_t pid)
+  void setPID(pid_t pid)
   {
-	  pid_ = pid;
+    pid_ = pid;
   }
 
-  pid_t getPID ()
+  pid_t getPID()
   {
-	  return pid_;
+    return pid_;
   }
 
-  int getCore ()
+  int getCore()
   {
-	  return core_;
+    return core_;
   }
 
-  std::string getRunScript ()
+  std::string getRunScript()
   {
-	  return run_script_;
+    return run_script_;
   }
 
-  std::string getLogFileName ()
+  std::string getLogFileName()
   {
-	  return log_file_;
+    return log_file_;
   }
 
-  bool isVerboseMode ()
+  bool isVerboseMode()
   {
-	  return verbose_;
+    return verbose_;
   }
 
 };
-
-
 
 #endif /* UTILS_APPLICATIONPROPERTIES_H_ */

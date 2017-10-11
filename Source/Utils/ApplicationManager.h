@@ -12,48 +12,49 @@
 #include <Console/Console.h>
 #include "ApplicationProperties.h"
 
-class ApplicationManager {
+class ApplicationManager
+{
 public:
-	ApplicationManager();
-	virtual ~ApplicationManager();
+  ApplicationManager();
+  virtual ~ApplicationManager();
 private:
-    std::vector<ApplicationProperties> applications;
-    bool running;
-    NS_NaviCommon::Console console;
+  std::vector< ApplicationProperties > applications;
+  bool running;
+  NS_NaviCommon::Console console;
 private:
 
-    bool addApplication (ApplicationProperties& application);
+  bool addApplication(ApplicationProperties& application);
 
-    bool runApplication (ApplicationProperties& application);
+  bool runApplication(ApplicationProperties& application);
 
-    bool runApplications ();
+  bool runApplications();
 
-    bool killApplication (std::string app_name);
+  bool killApplication(std::string app_name);
 
-    bool killApplication (pid_t pid);
+  bool killApplication(pid_t pid);
 
-    bool killApplications ();
+  bool killApplications();
 
-    void removeApplication (pid_t pid);
+  void removeApplication(pid_t pid);
 
 public:
 
-    bool initialize ();
+  bool initialize();
 
-    void pending ();
+  void pending();
 
-    void onApplicationQuit (pid_t pid, int status);
+  void onApplicationQuit(pid_t pid, int status);
 
-    bool isRunning ()
-	{
-		return running;
-	}
+  bool isRunning()
+  {
+    return running;
+  }
 
-	void terminate ()
-	{
-		console.debug ("Application is quitting!");
-		running = false;
-	}
+  void terminate()
+  {
+    console.debug("Application is quitting!");
+    running = false;
+  }
 
 };
 
