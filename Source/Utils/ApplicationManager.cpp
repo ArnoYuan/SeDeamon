@@ -223,7 +223,7 @@ bool ApplicationManager::initialize()
   NS_NaviCommon::Time::init();
 
   std::string app_names[] =
-    {"SeLidar", "SeController", "SeMapping", "SeNavigation"};
+    {"SeLidar", "SeController", "SeMapping", "SeNavigation", "SeTrunk"};
 
   for(size_t i = 0; i < (sizeof(app_names) / sizeof(std::string)); i++)
   {
