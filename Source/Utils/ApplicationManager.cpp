@@ -152,21 +152,30 @@ bool ApplicationManager::killApplication(pid_t pid)
     }
     else
     {
-      //sleep (1);
-      int result = waitpid(pid, NULL, WNOHANG);
-      if(result == pid)
+      int try_times = 5;
+      while(try_times--)
       {
-        return true;
+        sleep (1);
+        int result = waitpid(pid, NULL, WNOHANG);
+        if(result == pid)
+        {
+          break;
+        }
+        else if(result == 0)
+        {
+          continue;
+        }
+        else
+        {
+          return false;
+        }
       }
-      else if(result == 0)
+
+      if (try_times <= 0)
       {
-        console.debug("Application killing might be fail, kill it force.", pid);
+        console.message("Application killing might be fail, kill it force.", pid);
         kill(pid, SIGKILL);
         return true;
-      }
-      else
-      {
-        return false;
       }
     }
   }
