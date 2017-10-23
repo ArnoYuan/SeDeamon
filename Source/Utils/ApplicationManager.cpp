@@ -17,6 +17,7 @@
 
 ApplicationManager::ApplicationManager()
 {
+  console = NS_NaviCommon::Console("SeDeamon");
   applications.clear();
 }
 
