@@ -10,6 +10,8 @@
 
 #include <vector>
 #include <Console/Console.h>
+#include <boost/thread/thread.hpp>
+#include <boost/thread/mutex.hpp>
 #include "ApplicationProperties.h"
 
 class ApplicationManager
@@ -21,7 +23,16 @@ private:
   std::vector< ApplicationProperties > applications;
   bool running;
   NS_NaviCommon::Console console;
+
+  std::string log_server_ip_;
+  int log_server_port_;
+
+  boost::thread_group log_threads;
+  int log_sender_id;
+  boost::mutex log_sender_lock;
+
 private:
+  void loadParameters();
 
   bool addApplication(ApplicationProperties& application);
 
@@ -36,6 +47,12 @@ private:
   bool killApplications();
 
   void removeApplication(pid_t pid);
+
+  bool createLogSender();
+
+  bool createLogRedirector(std::string log_name);
+
+  void logFifoLoop(std::string log_file);
 
 public:
 

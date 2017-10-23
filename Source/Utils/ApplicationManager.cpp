@@ -9,6 +9,10 @@
 #include <stdio.h>
 #include <signal.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <errno.h>
+#include <arpa/inet.h>
 #include <sys/wait.h>
 #include <Time/Time.h>
 #include <Time/Rate.h>
@@ -23,6 +27,17 @@ ApplicationManager::ApplicationManager()
 
 ApplicationManager::~ApplicationManager()
 {
+  log_threads.join_all();
+  close(log_sender_id);
+}
+
+void ApplicationManager::loadParameters()
+{
+  NS_NaviCommon::Parameter parameter;
+  parameter.loadConfigurationFile("log_server.xml");
+
+  log_server_ip_ = parameter.getParameter("log_server_ip", "127.0.0.1");
+  log_server_port_ = parameter.getParameter("log_server_port", 12348);
 
 }
 
@@ -219,6 +234,72 @@ bool ApplicationManager::killApplications()
   return result;
 }
 
+bool ApplicationManager::createLogSender()
+{
+  int log_sender_id = socket(AF_INET, SOCK_DGRAM, 0);
+  if(log_sender_id < 0)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+bool ApplicationManager::createLogRedirector(std::string log_name)
+{
+  std::string log_path;
+  log_path = "/tmp/" + log_name + ".log";
+
+  if(mkfifo(log_path.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0 && errno != EEXIST)
+  {
+    return false;
+  }
+
+  log_threads.create_thread(boost::bind (&ApplicationManager::logFifoLoop, this, log_path));
+
+  return true;
+}
+
+void ApplicationManager::logFifoLoop(std::string log_file)
+{
+  int log_fifo_id = open(log_file.c_str(), O_RDONLY);
+  if(log_fifo_id < 0)
+  {
+    return;
+  }
+
+  console.message("Wait log stream on %s.", log_file.c_str());
+
+  while(running)
+  {
+    fd_set read_set;
+    FD_ZERO(&read_set);
+    FD_SET(log_fifo_id, &read_set);
+    int result;
+    if ((result = select(log_fifo_id + 1, &read_set, NULL, NULL, NULL)) > 0)
+    {
+      char buffer[1024] = {0};
+      int got = 0;
+      if ((got = read(log_fifo_id, buffer, sizeof(buffer))) > 0)
+      {
+        if(got > 0)
+        {
+          boost::mutex::scoped_lock locker(log_sender_lock);
+
+          struct sockaddr_in sin;
+          sin.sin_family = AF_INET;
+          sin.sin_port = htons(log_server_port_);
+          sin.sin_addr.s_addr = inet_addr(log_server_ip_.c_str());
+
+          sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&sin,sizeof(sin));
+
+        }
+      }
+    }
+  }
+  return;
+}
+
 bool ApplicationManager::initialize()
 {
   NS_NaviCommon::Time::init();
@@ -233,9 +314,16 @@ bool ApplicationManager::initialize()
     app.load();
 
     addApplication(app);
+
+    createLogRedirector(app_names[i]);
   }
 
   if(!runApplications())
+  {
+    return false;
+  }
+
+  if(!createLogSender())
   {
     return false;
   }
