@@ -22,6 +22,7 @@
 ApplicationManager::ApplicationManager()
 {
   console = NS_NaviCommon::Console("SeDeamon");
+  console.showDebug(true);
   applications.clear();
 }
 
@@ -237,6 +238,7 @@ bool ApplicationManager::createLogSender()
   int log_sender_id = socket(AF_INET, SOCK_DGRAM, 0);
   if(log_sender_id < 0)
   {
+    console.debug("Create log sender fail!");
     return false;
   }
 
@@ -250,6 +252,7 @@ bool ApplicationManager::createLogRedirector(std::string log_name)
 
   if(mkfifo(log_path.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH) < 0 && errno != EEXIST)
   {
+    console.debug("Make log queue %s fail!", log_path.c_str());
     return false;
   }
 
@@ -263,6 +266,7 @@ void ApplicationManager::logFifoLoop(std::string log_file)
   int log_fifo_id = open(log_file.c_str(), O_RDONLY);
   if(log_fifo_id < 0)
   {
+    console.debug("Make log queue %s fail!", log_file.c_str());
     return;
   }
 
@@ -322,11 +326,13 @@ bool ApplicationManager::initialize()
 
   if(!runApplications())
   {
+    console.error("Run application error.");
     return false;
   }
 
   if(!createLogSender())
   {
+    console.error("Create log sender error.");
     return false;
   }
 
