@@ -80,11 +80,9 @@ bool ApplicationManager::runApplication(ApplicationProperties& application)
         cmdstr << " ";
       }
 
-      if(application.getLogFileName() != "")
+      if(application.isRemoteLog())
       {
         cmdstr << "-l ";
-        cmdstr << application.getLogFileName();
-        cmdstr << " ";
       }
 
       cmd = cmdstr.str();
@@ -272,27 +270,31 @@ void ApplicationManager::logFifoLoop(std::string log_file)
 
   while(running)
   {
+    struct timeval timeout = {0, 100000};
     fd_set read_set;
     FD_ZERO(&read_set);
     FD_SET(log_fifo_id, &read_set);
     int result;
-    if ((result = select(log_fifo_id + 1, &read_set, NULL, NULL, NULL)) > 0)
+    if ((result = select(log_fifo_id + 1, &read_set, NULL, NULL, &timeout)) > 0)
     {
-      char buffer[1024] = {0};
-      int got = 0;
-      if ((got = read(log_fifo_id, buffer, sizeof(buffer))) > 0)
+      if(result > 0)
       {
-        if(got > 0)
+        char buffer[1024] = {0};
+        int got = 0;
+        if ((got = read(log_fifo_id, buffer, sizeof(buffer))) > 0)
         {
-          boost::mutex::scoped_lock locker(log_sender_lock);
+          if(got > 0)
+          {
+            boost::mutex::scoped_lock locker(log_sender_lock);
 
-          struct sockaddr_in sin;
-          sin.sin_family = AF_INET;
-          sin.sin_port = htons(log_server_port_);
-          sin.sin_addr.s_addr = inet_addr(log_server_ip_.c_str());
+            struct sockaddr_in sin;
+            sin.sin_family = AF_INET;
+            sin.sin_port = htons(log_server_port_);
+            sin.sin_addr.s_addr = inet_addr(log_server_ip_.c_str());
 
-          sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&sin,sizeof(sin));
+            sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&sin,sizeof(sin));
 
+          }
         }
       }
     }

@@ -17,7 +17,7 @@ class ApplicationProperties
 public:
   ApplicationProperties(std::string name)
       : name_(name), pid_(0), run_script_(""), verbose_(false), core_(0),
-        log_file_("")
+        remote_log_(true)
   {
 
   }
@@ -31,7 +31,7 @@ private:
   std::string run_script_;
   bool verbose_;
   int core_;
-  std::string log_file_;
+  bool remote_log_;
 public:
   void load()
   {
@@ -53,7 +53,9 @@ public:
 
       core_ = parameter.getParameter("core", 0);
 
-      log_file_ = parameter.getParameter("log_file", "");
+      if(parameter.getParameter("remote_log", 1) == 1)
+        remote_log_ = 1;
+      else remote_log_ = 0;
     }
   }
 
@@ -82,9 +84,9 @@ public:
     return run_script_;
   }
 
-  std::string getLogFileName()
+  bool isRemoteLog()
   {
-    return log_file_;
+    return remote_log_;
   }
 
   bool isVerboseMode()
