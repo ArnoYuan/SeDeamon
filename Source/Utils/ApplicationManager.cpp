@@ -306,7 +306,10 @@ void ApplicationManager::logFifoLoop(std::string log_file)
             rmt_addr.sin_port = htons(log_server_port_);
             rmt_addr.sin_addr.s_addr = inet_addr(log_server_ip_.c_str());
 
-            sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&rmt_addr, sin_len);
+            if(sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&rmt_addr, sin_len) < 0)
+            {
+              printf("{e:%d}%s", errno, buffer);
+            }
 
           }
         }
