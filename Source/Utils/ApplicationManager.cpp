@@ -38,7 +38,7 @@ void ApplicationManager::loadParameters()
   parameter.loadConfigurationFile("log_server.xml");
 
   log_server_ip_ = parameter.getParameter("log_server_ip", "127.0.0.1");
-  log_server_port_ = parameter.getParameter("log_server_port", 12348);
+  log_server_port_ = parameter.getParameter("log_server_port", 12349);
 
 }
 
@@ -235,10 +235,17 @@ bool ApplicationManager::killApplications()
 
 bool ApplicationManager::createLogSender()
 {
-  int log_sender_id = socket(AF_INET, SOCK_DGRAM, 0);
+  log_sender_id = socket(AF_INET, SOCK_DGRAM, 0);
   if(log_sender_id < 0)
   {
     console.debug("Create log sender fail!");
+    return false;
+  }
+
+  int optval = 1;
+  if(setsockopt(log_sender_id, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(int)) < 0)
+  {
+    console.debug("Set log sender fail!, because %d.", errno);
     return false;
   }
 
@@ -283,7 +290,7 @@ void ApplicationManager::logFifoLoop(std::string log_file)
     {
       if(result > 0)
       {
-        char buffer[1024] = {0};
+        char buffer[512] = {0};
         int got = 0;
         if ((got = read(log_fifo_id, buffer, sizeof(buffer))) > 0)
         {
@@ -291,12 +298,15 @@ void ApplicationManager::logFifoLoop(std::string log_file)
           {
             boost::mutex::scoped_lock locker(log_sender_lock);
 
-            struct sockaddr_in sin;
-            sin.sin_family = AF_INET;
-            sin.sin_port = htons(log_server_port_);
-            sin.sin_addr.s_addr = inet_addr(log_server_ip_.c_str());
+            struct sockaddr_in rmt_addr;
+            socklen_t sin_len = sizeof(struct sockaddr_in);
 
-            sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&sin,sizeof(sin));
+            bzero(&rmt_addr, sizeof(struct sockaddr_in));
+            rmt_addr.sin_family = AF_INET;
+            rmt_addr.sin_port = htons(log_server_port_);
+            rmt_addr.sin_addr.s_addr = inet_addr(log_server_ip_.c_str());
+
+            sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&rmt_addr, sin_len);
 
           }
         }
@@ -309,6 +319,14 @@ void ApplicationManager::logFifoLoop(std::string log_file)
 bool ApplicationManager::initialize()
 {
   NS_NaviCommon::Time::init();
+
+  loadParameters();
+
+  if(!createLogSender())
+  {
+    console.error("Create log sender error.");
+    return false;
+  }
 
   std::string app_names[] =
     {"SeLidar", "SeController", "SeMapping", "SeNavigation", "SeTrunk"};
@@ -327,12 +345,6 @@ bool ApplicationManager::initialize()
   if(!runApplications())
   {
     console.error("Run application error.");
-    return false;
-  }
-
-  if(!createLogSender())
-  {
-    console.error("Create log sender error.");
     return false;
   }
 
