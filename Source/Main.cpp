@@ -39,8 +39,10 @@ void registerSignals()
   //signal (SIGUSR1, signalChild);
 }
 
-void cleanup()
+void setup()
 {
+  system("/usr/sbin/SetupHW");
+
   //DATASETS
   boost::interprocess::shared_memory_object::remove("TWIST");
   boost::interprocess::shared_memory_object::remove("LASER_SCAN");
@@ -74,7 +76,7 @@ int main(int argc, char* argv[])
       return 0;
     }
 
-    cleanup();
+    setup();
 
     manager = new ApplicationManager();
 
@@ -92,8 +94,6 @@ int main(int argc, char* argv[])
     delete manager;
 
     printf("Quit SeDeamon process.\n");
-
-    cleanup();
 
     exit(EXIT_SUCCESS);
     return 0;
