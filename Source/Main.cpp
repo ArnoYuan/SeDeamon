@@ -42,6 +42,8 @@ void registerSignals()
 void setup()
 {
   system("/usr/sbin/SetupHW");
+  system("rm -f /tmp/gmap*");
+  system("tm -f /tmp/Se*.log");
 
   //DATASETS
   boost::interprocess::shared_memory_object::remove("TWIST");
