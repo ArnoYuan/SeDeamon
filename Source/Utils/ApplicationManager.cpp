@@ -296,9 +296,6 @@ void ApplicationManager::logFifoLoop(std::string log_file)
         {
           if(got > 0)
           {
-            printf("--%d--\n", got);
-            boost::mutex::scoped_lock locker(log_sender_lock);
-
             struct sockaddr_in rmt_addr;
             socklen_t sin_len = sizeof(struct sockaddr_in);
 
@@ -306,6 +303,8 @@ void ApplicationManager::logFifoLoop(std::string log_file)
             rmt_addr.sin_family = AF_INET;
             rmt_addr.sin_port = htons(log_server_port_);
             rmt_addr.sin_addr.s_addr = inet_addr(log_server_ip_.c_str());
+
+            boost::mutex::scoped_lock locker(log_sender_lock);
 
             if(sendto(log_sender_id, buffer, got, 0, (struct sockaddr*)&rmt_addr, sin_len) < 0)
             {
