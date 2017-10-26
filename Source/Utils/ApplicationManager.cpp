@@ -296,6 +296,7 @@ void ApplicationManager::logFifoLoop(std::string log_file)
         {
           if(got > 0)
           {
+            printf("--%d--\n", got);
             boost::mutex::scoped_lock locker(log_sender_lock);
 
             struct sockaddr_in rmt_addr;
