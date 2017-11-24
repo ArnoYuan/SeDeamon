@@ -330,12 +330,9 @@ bool ApplicationManager::initialize()
     console.error("Create log sender error.");
     return false;
   }
-/*
+
   std::string app_names[] =
-    {"SeLidar", "SeController", "SeMapping", "SeNavigation", "SeTrunk"};
-    */
-  std::string app_names[] =
-      {"SeController"};
+    {"SeLidar", "SeController", "SeLocation", "SeMapping", "SeNavigation", "SeTrunk"};
 
   for(size_t i = 0; i < (sizeof(app_names) / sizeof(std::string)); i++)
   {
