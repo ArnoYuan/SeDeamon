@@ -332,7 +332,8 @@ bool ApplicationManager::initialize()
   }
 
   std::string app_names[] =
-    {"SeLidar", "SeController", "SeLocation", "SeMapping", "SeNavigation", "SeTrunk"};
+    //{"SeLidar", "SeController", "SeLocation", "SeMapping", "SeNavigation", "SeTrunk"};
+  {"SeLidar", "SeController", "SeMapping", "SeTrunk"};
 
   for(size_t i = 0; i < (sizeof(app_names) / sizeof(std::string)); i++)
   {
